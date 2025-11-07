@@ -1,0 +1,84 @@
+(nextjs_routes) {
+	path / /builder /builder/* /_next/* /scripts/* /__nextjs* /_api/*
+}
+
+(laravel_routes) {
+	path /_debugbar/* /assets/* /livewire/* /build/* /admin* /student* /auth* /api/* /verify-signature/* /checkout/*
+}
+
+(laravel_config) {
+	@laravel {
+		import laravel_routes
+	}
+
+	handle @laravel {
+		reverse_proxy 172.16.0.4 {
+			header_up Host {host}
+		}
+
+		file_server
+	}
+}
+
+(base_config) {
+	log {
+		output stdout
+	}
+
+	@nextjs {
+		import nextjs_routes
+	}
+
+	handle @nextjs {
+		reverse_proxy 172.16.0.6:3000
+	}
+
+	import laravel_config
+
+	handle {
+		reverse_proxy 172.16.0.6:3000
+	}
+}
+
+{
+	on_demand_tls {
+		ask http://172.16.0.4
+	}
+}
+
+# Site Owner's Panel
+app.protein-atomic-evolve-muffin.dev {
+	reverse_proxy 172.16.0.4 {
+		header_up Host {host}
+	}
+
+	tls /etc/ssl/certs/klasio/klasio.com.crt /etc/ssl/certs/klasio/klasio.com.key
+
+	log {
+		output file /var/log/caddy/access.log
+		level INFO
+		format console
+	}
+}
+
+# Tenant Site
+*.protein-atomic-evolve-muffin.dev {
+	tls /etc/ssl/certs/klasio/klasio.com.crt /etc/ssl/certs/klasio/klasio.com.key
+
+	import base_config
+}
+
+# HTTP to HTTPS redirect for all domains
+:80 {
+	redir https://{host}{uri} permanent
+}
+
+# All other domains: on-demand TLS (Let's Encrypt)
+:443 {
+	tls {
+		on_demand
+	}
+	import base_config
+}
+
+import /etc/caddy/sites-enabled/*.caddy
