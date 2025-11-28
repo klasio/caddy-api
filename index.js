@@ -12,6 +12,7 @@ const RELOAD_CMD = process.env.CADDY_RELOAD_CMD || 'systemctl reload caddy';
 const API_KEY = process.env.API_KEY;
 const PORT = process.env.API_PORT || 3001;
 const LARAVEL_BACKEND_IP = process.env.LARAVEL_BACKEND_IP || '10.0.0.1';
+const NEXTJS_BACKEND_IP = process.env.NEXTJS_BACKEND_IP || '10.0.0.2';
 
 // Simple auth middleware
 app.use((req, res, next) => {
