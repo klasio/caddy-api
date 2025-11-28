@@ -30,6 +30,14 @@ function generateLaravelOnlyConfig(hostname) {
         on_demand
     }
 
+    @nextjs {
+      path /builder /builder/* /_next/* /scripts/* /__nextjs* /_api/*
+    }
+
+    handle @nextjs {
+      reverse_proxy ${NEXTJS_BACKEND_IP}:3000
+    }
+
     reverse_proxy ${LARAVEL_BACKEND_IP} {
         header_up Host {host}
     }
