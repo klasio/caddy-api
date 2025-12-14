@@ -49,5 +49,36 @@ WantedBy=multi-user.target
 4. Reload & Enable:
   ```
   sudo systemctl daemon-reload
-  sudo systemctl enable --now caddy-api
-  ```
+
+### Let'sEncrypt setup (for webhook.klasio.com)
+
+```
+apt update && apt install certbot -y
+certbot certonly --standalone -d webhook.klasio.com
+chown -R caddy:caddy /var/www/letsencrypt
+
+chmod 755 /etc/letsencrypt/archive /etc/letsencrypt/live
+chmod 755 /etc/letsencrypt/archive/webhook.klasio.com
+chmod 644 /etc/letsencrypt/archive/webhook.klasio.com/*.pem
+
+cat > /etc/letsencrypt/renewal/webhook.klasio.com.conf << 'EOF'
+# renew_before_expiry = 30 days
+version = 2.9.0
+archive_dir = /etc/letsencrypt/archive/webhook.klasio.com
+cert = /etc/letsencrypt/live/webhook.klasio.com/cert.pem
+privkey = /etc/letsencrypt/live/webhook.klasio.com/privkey.pem
+chain = /etc/letsencrypt/live/webhook.klasio.com/chain.pem
+fullchain = /etc/letsencrypt/live/webhook.klasio.com/fullchain.pem
+
+# Options used in the renewal process
+[renewalparams]
+account = 984a7d9b6e5efab93377a50a12e8c56b
+authenticator = webroot
+webroot_path = /var/www/letsencrypt
+server = https://acme-v02.api.letsencrypt.org/directory
+key_type = ecdsa
+EOF
+
+certbot renew --dry-run
+
+```
