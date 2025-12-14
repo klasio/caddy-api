@@ -61,6 +61,30 @@ app.protein-atomic-evolve-muffin.dev {
 	}
 }
 
+# Webhook
+webhook.klasio.com {
+	tls /etc/letsencrypt/live/webhook.klasio.com/fullchain.pem /etc/letsencrypt/live/webhook.klasio.com/privkey.pem
+
+	# Serve ACME challenge files
+	@acme {
+		path /.well-known/acme-challenge/*
+	}
+	handle @acme {
+		root * /var/www/letsencrypt
+		file_server
+	}
+
+	reverse_proxy 10.0.0.4 {
+		header_up Host {host}
+	}
+
+	log {
+		output file /var/log/caddy/webhook.log
+		level INFO
+		format console
+	}
+}
+
 # Tenant Site
 *.protein-atomic-evolve-muffin.dev {
 	tls /etc/ssl/certs/klasio/klasio.com.crt /etc/ssl/certs/klasio/klasio.com.key
